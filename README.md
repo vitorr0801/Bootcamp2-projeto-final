@@ -1,164 +1,67 @@
-# Escalação — Explorador de Times (Etapa 02)
+# Escalação — Explorador de Times
 
-**Autor:** Vitor — RA 22308730 — GitHub: [vitorr0801](https://github.com/vitorr0801)
+Projeto final do Bootcamp 2, desenvolvido em grupo.
 
-Aplicação web (HTML + CSS + JavaScript puros) para explorar times de futebol, basquete, hóquei no gelo, beisebol e futebol americano usando a API pública [TheSportsDB](https://www.thesportsdb.com/). Na Etapa 02 foram adicionados **favoritos persistidos em um banco de dados real (Supabase / PostgreSQL)** e o empacotamento da aplicação em **Docker**, publicado no Docker Hub.
+## 1. Integrantes e responsabilidades
 
-## 1. Links da entrega
+| Nome | Matrícula | Usuário GitHub | Funcionalidade (dono do código) | Principal PR |
+|------|-----------|----------------|---------------------------------|--------------|
+| Vitor | 22308730 | [vitorr0801](https://github.com/vitorr0801) | [PREENCHER] | [PREENCHER: link da PR] |
+| [PREENCHER] | [PREENCHER] | [PREENCHER] | [PREENCHER] | [PREENCHER: link da PR] |
+| [PREENCHER] | [PREENCHER] | [PREENCHER] | [PREENCHER] | [PREENCHER: link da PR] |
 
-| Item | Link |
-|------|------|
-| Repositório GitHub | https://github.com/vitorr0801/bootcamp2-app |
-| GitHub Pages (app online) | https://vitorr0801.github.io/bootcamp2-app/ |
-| Docker Hub | https://hub.docker.com/r/vitorceub/bootcamp2-app |
+## 2. A aplicação
 
-## 2. Rodar com Docker (comando pronto)
+Aplicação web (HTML, CSS e JavaScript) para explorar times de futebol, basquete, hóquei no gelo, beisebol e futebol americano. É possível buscar um time por nome ou navegar por esporte, país e liga, favoritar times e escrever uma anotação pessoal em cada favorito.
 
-```bash
-docker run -d -p 8080:80 vitorceub/bootcamp2-app:1.1
-```
+- **API externa:** [TheSportsDB](https://www.thesportsdb.com/) (chave gratuita `123`), usando `searchteams.php`, `search_all_leagues.php` e `search_all_teams.php`.
+- **Banco de dados:** Supabase (PostgreSQL), tabela `favoritos`. O script de criação está em [`banco.sql`](banco.sql). O RLS está ativo com políticas abertas para o papel `anon`, o que é uma limitação conhecida: sem login, qualquer pessoa com a chave anon pode ler, criar, editar e apagar favoritos.
+- **Estrutura do código:** `utils.js` guarda as funções puras (normalização de texto, tradução de país, escape de HTML, conversão entre time da API e registro do banco), que são as testadas. `script.js` cuida da tela e da comunicação com a API e o banco.
 
-Depois abra **http://localhost:8080**. Para parar e remover: `docker stop <nome>` e `docker rm <nome>`.
+## 3. Como rodar localmente
 
-### Rodar sem Docker
+1. Clone o repositório.
+2. Em `script.js`, preencha `SUPABASE_URL` e `SUPABASE_ANON_KEY` com os dados do projeto Supabase do grupo.
+3. Abra o `index.html` no navegador (ou use a extensão Live Server).
 
-Basta abrir o `index.html` no navegador (ou servir a pasta com qualquer servidor estático). Antes, configure a URL e a chave do Supabase no começo do `script.js` (seção 4).
-
-## 3. Funcionalidades
-
-- Busca de time por nome (ex.: Real Madrid, Lakers, Cruzeiro).
-- Navegação por esporte → país → liga → equipe, com filtro por nome dentro da liga.
-- **Favoritar** qualquer time dos resultados (botão ☆/★ no card).
-- Seção **Meus favoritos**, carregada do banco assim que a página abre, com botão **Excluir** em cada item.
-- **Anotação pessoal** em cada favorito (v1.1), salva no banco.
-- Avisos (toasts) para sucesso e erro, inclusive quando o banco recusa uma operação.
-
-## 4. Persistência de dados
-
-- **Banco escolhido:** Supabase (PostgreSQL gerenciado), região América.
-- **Acesso:** o navegador usa `supabase-js` com a **URL do projeto** e a **chave anon/public** (segura para o frontend; a chave `service_role` nunca é usada). Não é usado `localStorage`: os dados ficam no banco e aparecem em qualquer navegador/dispositivo.
-- **Script da tabela:** [`banco.sql`](banco.sql) (colar no SQL Editor do Supabase).
-
-### Estrutura da tabela `favoritos`
-
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| `id` | bigint (identity, PK) | Identificador do registro |
-| `criado_em` | timestamptz (default `now()`) | Quando foi favoritado |
-| `id_time` | text, **unique**, not null | `idTeam` da TheSportsDB (impede favoritar o mesmo time duas vezes) |
-| `nome_time` | text, not null | Nome do time |
-| `escudo_url` | text | URL do escudo |
-| `liga` | text | Liga do time |
-| `esporte` | text | Esporte |
-| `pais` | text | País |
-| `estadio` | text | Estádio |
-| `ano_fundacao` | integer | Ano de fundação |
-| `anotacao` | text (máx. 500) | Anotação pessoal sobre o time (v1.1) |
-
-### O que é salvo e como cada operação funciona
-
-Ao favoritar, salvamos os dados principais do time vindos da API, para a lista aparecer sem nova consulta à TheSportsDB.
-
-| Operação | Onde no app | Chamada |
-|----------|-------------|---------|
-| **Create** | Botão "☆ Favoritar" | `insert` na tabela `favoritos` |
-| **Read** | Seção "Meus favoritos" (ao abrir a página) | `select` ordenado por `criado_em` desc |
-| **Update** (v1.1) | Campo "Minha anotação" + "Salvar anotação" no favorito | `update` da coluna `anotacao` por `id` |
-| **Delete** | Botão "Excluir" no item, ou "★ Favoritado" no card | `delete` por `id` |
-
-O app confere se o `delete` realmente removeu uma linha, porque o Supabase não devolve erro quando o RLS bloqueia a exclusão (apenas 0 linhas afetadas).
-
-### Row Level Security (RLS) — limitação conhecida
-
-O RLS está **ativado** na tabela, com políticas **abertas para o papel `anon`** (`select`, `insert`, `update` e `delete` com `using (true)` / `with check (true)`). Isso é uma **limitação conhecida e aceita nesta etapa**: como não há login, **qualquer pessoa com a chave anon pode ler, criar, editar e apagar favoritos**, e a lista é compartilhada entre todos os visitantes. Em produção, usaríamos Supabase Auth, uma coluna `user_id` e políticas do tipo `auth.uid() = user_id`.
-
-## 5. Docker
-
-`Dockerfile`:
-
-```dockerfile
-FROM nginx:alpine
-COPY index.html style.css script.js /usr/share/nginx/html/
-EXPOSE 80
-```
-
-Comandos usados na primeira publicação (versão 1.0):
+## 4. Como rodar com Docker
 
 ```bash
-docker build -t bootcamp2-app .
-docker run -d -p 8080:80 --name meu-app bootcamp2-app
-docker login
-docker tag bootcamp2-app vitorceub/bootcamp2-app:1.0
-docker push vitorceub/bootcamp2-app:1.0
+docker run -d -p 8080:80 [PREENCHER: usuario]/[PREENCHER: nome-da-imagem]:[PREENCHER: tag]
 ```
 
-## 6. Sidequests
+Depois abra http://localhost:8080. A imagem não precisa de variáveis de ambiente: a URL e a chave anon do Supabase já estão no código.
 
-### SQ1 — `.dockerignore`
+Docker Hub: [PREENCHER: link do repositório no Docker Hub]
 
-O arquivo [`.dockerignore`](.dockerignore) lista o que **não** deve ser enviado ao Docker no `docker build`: `.git`, README, PDFs, prints, `docs`, `banco.sql`, arquivos de editor etc.
-
-- **Build mais rápido:** o Docker envia a pasta inteira (o *contexto de build*) ao daemon antes de construir; sem o `.dockerignore`, isso inclui o histórico do `.git` e imagens, e a transferência demora mais.
-- **Imagem menor / mais limpa:** como o meu `Dockerfile` copia só os três arquivos pelo nome, o tamanho final da imagem já seria o mesmo. O ganho de tamanho aparece se alguém usar `COPY . .`: o `.dockerignore` impede que `.git`, documentação e arquivos de infraestrutura entrem na imagem por engano. Também evita que arquivos sensíveis ou inúteis acabem publicados no Docker Hub.
-
-### SQ2 — Tags
-
-| Tag | Conteúdo |
-|-----|----------|
-| `1.0` | Versão da entrega: busca + favoritos (criar, listar, excluir) |
-| `1.1` | Anotação pessoal em cada favorito (operação **UPDATE**): campo de texto de até 500 caracteres salvo na coluna `anotacao` |
-| `latest` | Aponta para a versão mais recente (`1.1`) |
+Para construir a imagem localmente:
 
 ```bash
-docker tag bootcamp2-app vitorceub/bootcamp2-app:1.1
-docker tag bootcamp2-app vitorceub/bootcamp2-app:latest
-docker push vitorceub/bootcamp2-app:1.1
-docker push vitorceub/bootcamp2-app:latest
+docker build -t bootcamp2-projeto-final .
+docker run -d -p 8080:80 --name app bootcamp2-projeto-final
 ```
 
-As três tags aparecem na aba *Tags* do Docker Hub: https://hub.docker.com/r/vitorceub/bootcamp2-app/tags.
+## 5. Como rodar os testes
 
-### SQ3 — Overview no Docker Hub
-
-A página do repositório no Docker Hub tem descrição do que é o app, o comando `docker run` pronto para copiar e o link do GitHub. O texto está em [`docs/dockerhub-overview.md`](docs/dockerhub-overview.md).
-
-### SQ4 — Dois containers ao mesmo tempo
+É preciso ter o Node.js 20 ou mais novo.
 
 ```bash
-docker run -d -p 8080:80 --name meu-app vitorceub/bootcamp2-app:1.1
-docker run -d -p 8081:80 --name meu-app-2 vitorceub/bootcamp2-app:1.1
-docker ps
+npm install
+npm test
 ```
 
-Print do `docker ps` com os dois containers rodando (8080 e 8081):
+Os testes ficam em `utils.test.js` (Jest) e cobrem as funções de `utils.js`. No GitHub, o workflow `.github/workflows/ci.yml` roda os mesmos testes a cada Pull Request e a cada push na `main`.
 
-![docker ps com dois containers](docs/docker-ps.png)
+## 6. Fluxo de trabalho do grupo
 
-**E se eu tivesse 100 containers, como gerenciaria?**
+A `main` é protegida: nenhum código entra direto nela. Cada funcionalidade nasce numa branch `feature/...`, chega à `main` por Pull Request, é revisada por outro integrante (que deixa pelo menos um comentário) e só pode ser mesclada com o check de testes verde.
 
-Subir, monitorar e atualizar 100 containers com `docker run` à mão é inviável. A ferramenta para isso é um orquestrador, e o mais usado é o **Kubernetes**. Pesquisei os conceitos principais:
+## 7. Evidências
 
-- **Cluster:** conjunto de máquinas (nós) que o Kubernetes gerencia como se fossem um só computador; há um plano de controle que decide onde cada container roda.
-- **Pod:** a menor unidade que o Kubernetes executa; embrulha um (ou poucos) container(s) que compartilham rede e armazenamento. Neste projeto, 1 pod = 1 container Nginx.
-- **Replica (ReplicaSet/Deployment):** quantas cópias idênticas de um pod devem existir. Eu declararia "quero 100 réplicas" e o Kubernetes mantém esse número.
+### PR bloqueada pelo CI
 
-Isso traz: **auto-recuperação** (se um container cai, outro é criado), **escalonamento** (mudar de 2 para 100 réplicas com um comando ou automaticamente conforme a carga), **balanceamento de carga** entre as réplicas e **atualizações graduais (rolling update)**, trocando `1.0` por `1.1` sem tirar o site do ar.
+[PREENCHER: print de uma PR com o teste quebrando e o merge bloqueado, e o link da PR]
 
-## 7. API utilizada
+### Conflito de merge resolvido
 
-TheSportsDB (chave gratuita `123`): `searchteams.php`, `search_all_leagues.php` e `search_all_teams.php`. A versão gratuita retorna no máximo 10 times por liga, e o app avisa quando isso acontece.
-
-## 8. Estrutura do repositório
-
-```
-├── index.html
-├── style.css
-├── script.js          # lógica + integração com Supabase
-├── banco.sql          # criação da tabela e políticas RLS
-├── Dockerfile
-├── .dockerignore
-├── docs/
-│   ├── dockerhub-overview.md
-│   └── docker-ps.png  # evidência da SQ4
-└── README.md
-```
+[PREENCHER: relato de pelo menos um conflito de merge: quais branches, qual arquivo, como foi resolvido e por quem. Se não houve, escrever que não houve]

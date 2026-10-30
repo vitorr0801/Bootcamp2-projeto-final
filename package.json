@@ -1,0 +1,12 @@
+{
+  "name": "bootcamp2-projeto-final",
+  "version": "1.0.0",
+  "description": "Escalação: explorador de times com favoritos salvos no Supabase",
+  "private": true,
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

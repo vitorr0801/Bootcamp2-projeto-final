@@ -10,9 +10,12 @@ docs
 Dockerfile
 .dockerignore
 banco.sql
+package.json
+package-lock.json
+utils.test.js
+node_modules
 .vscode
 .idea
 .DS_Store
 Thumbs.db
-node_modules
 *.log
