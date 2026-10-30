@@ -669,7 +669,58 @@ area.addEventListener("click", (evento) => {
   if (botaoBuscarTime) buscarTimeNaLigaAtual(botaoBuscarTime.dataset.termo);
 });
 
+async function salvarNota(id, valor) {
+  if (!clienteSupabase) return;
+
+  if (valor !== null && !validarNota(valor)) {
+    mostrarToast("A nota precisa ser um número inteiro de 1 a 5.", "erro");
+    return;
+  }
+
+  const grupo = [...listaFavoritos.querySelectorAll(".nota")].find((el) => el.dataset.id === String(id));
+  const botoes = grupo ? grupo.querySelectorAll("button") : [];
+  botoes.forEach((b) => (b.disabled = true));
+
+  try {
+    const { data, error } = await clienteSupabase
+      .from(TABELA_FAVORITOS)
+      .update({ nota: valor === null ? null : Number(valor) })
+      .eq("id", id)
+      .select();
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      mostrarToast("O banco recusou salvar a nota. Confira a policy de UPDATE (RLS) no Supabase.", "erro");
+      botoes.forEach((b) => (b.disabled = false));
+      return;
+    }
+
+    const linha = favoritos.find((f) => String(f.id) === String(id));
+    if (linha) linha.nota = data[0].nota;
+
+    if (grupo && linha) grupo.outerHTML = criarEstrelasHTML(linha);
+    atualizarMediaNotas();
+  } catch (erro) {
+    console.error("Erro ao salvar nota:", erro);
+    mostrarToast(mensagemDeErroDoBanco(erro), "erro");
+    botoes.forEach((b) => (b.disabled = false));
+  }
+}
+
 listaFavoritos.addEventListener("click", (evento) => {
+  const botaoEstrela = evento.target.closest(".estrela");
+  if (botaoEstrela) {
+    salvarNota(botaoEstrela.dataset.id, botaoEstrela.dataset.nota);
+    return;
+  }
+
+  const botaoLimparNota = evento.target.closest(".botao-limpar-nota");
+  if (botaoLimparNota) {
+    salvarNota(botaoLimparNota.dataset.id, null);
+    return;
+  }
+
   const botaoSalvar = evento.target.closest(".botao-salvar-anotacao");
   if (botaoSalvar) {
     salvarAnotacao(botaoSalvar);
