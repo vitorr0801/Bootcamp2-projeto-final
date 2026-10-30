@@ -29,3 +29,5 @@
      on public.favoritos for update to anon using (true) with check (true);
 
    grant select, insert, update, delete on public.favoritos to anon;
+alter table public.favoritos
+  add column if not exists nota smallint check (nota between 1 and 5);
