@@ -58,6 +58,11 @@ const listaFavoritos = document.getElementById("lista-favoritos");
 const contadorFavoritos = document.getElementById("contador-favoritos");
 const toast = document.getElementById("toast");
 const mediaNotas = document.getElementById("media-notas");
+const controlesFavoritos = document.getElementById("controles-favoritos");
+const campoBuscaFavoritos = document.getElementById("campo-busca-favoritos");
+const selectOrdemFavoritos = document.getElementById("select-ordem-favoritos");
+const selectNotaFavoritos = document.getElementById("select-nota-favoritos");
+const resumoFavoritos = document.getElementById("resumo-favoritos");
 
 let ultimosTimesCarregados = [];
 
@@ -336,10 +341,16 @@ function mostrarToast(mensagem, tipo = "info") {
   }, 5000);
 }
 
+function mostrarErroNosFavoritos(mensagem) {
+  contadorFavoritos.textContent = "—";
+  controlesFavoritos.hidden = true;
+  resumoFavoritos.hidden = true;
+  listaFavoritos.innerHTML = `<p class="estado-erro">${escaparHTML(mensagem)}</p>`;
+}
+
 async function carregarFavoritos() {
   if (!clienteSupabase) {
-    contadorFavoritos.textContent = "—";
-    listaFavoritos.innerHTML = `<p class="estado-erro">${escaparHTML(motivoBancoIndisponivel)}</p>`;
+    mostrarErroNosFavoritos(motivoBancoIndisponivel);
     return;
   }
 
@@ -352,11 +363,11 @@ async function carregarFavoritos() {
     if (error) throw error;
 
     favoritos = data || [];
+    listaFavoritos.innerHTML = "";
     renderizarFavoritos();
   } catch (erro) {
     console.error("Erro ao listar favoritos:", erro);
-    contadorFavoritos.textContent = "—";
-    listaFavoritos.innerHTML = `<p class="estado-erro">${escaparHTML(mensagemDeErroDoBanco(erro))}</p>`;
+    mostrarErroNosFavoritos(mensagemDeErroDoBanco(erro));
   }
 }
 
@@ -400,46 +411,170 @@ function atualizarMediaNotas() {
   mediaNotas.hidden = false;
 }
 
-function renderizarFavoritos() {
-  contadorFavoritos.textContent = String(favoritos.length);
+function criarCardFavoritoHTML(linha) {
+  const anotacao = `
+    <div class="anotacao">
+      <label class="anotacao__rotulo" for="anotacao-${escaparHTML(linha.id)}">Minha anotação</label>
+      <textarea
+        id="anotacao-${escaparHTML(linha.id)}"
+        class="anotacao__campo"
+        maxlength="${TAMANHO_MAXIMO_ANOTACAO}"
+        rows="2"
+        placeholder="Ex.: ver o jogo de domingo, camisa que quero comprar..."
+      >${escaparHTML(linha.anotacao || "")}</textarea>
+      <button type="button" class="botao-salvar-anotacao" data-id="${escaparHTML(linha.id)}">
+        Salvar anotação
+      </button>
+    </div>
+  `;
+  const botaoExcluir = `
+    <button type="button" class="botao-excluir-favorito" data-id="${escaparHTML(linha.id)}">
+      Excluir
+    </button>
+  `;
+  return criarCardHTML(linhaParaTime(linha), criarEstrelasHTML(linha) + anotacao + botaoExcluir);
+}
+
+function criarElementoCardFavorito(linha) {
+  const recipiente = document.createElement("div");
+  recipiente.innerHTML = criarCardFavoritoHTML(linha);
+  const card = recipiente.firstElementChild;
+  card.dataset.idFavorito = String(linha.id);
+  return card;
+}
+
+function encontrarCardFavorito(id) {
+  return [...listaFavoritos.children].find((el) => el.dataset.idFavorito === String(id));
+}
+
+function lerFiltrosFavoritos() {
+  return {
+    termo: campoBuscaFavoritos.value,
+    nota: selectNotaFavoritos.value,
+    ordem: selectOrdemFavoritos.value,
+  };
+}
+
+function temFiltroAtivo(filtros) {
+  return filtros.termo.trim() !== "" || filtros.nota !== "";
+}
+
+// Os cards já existentes são reaproveitados (só escondidos ou movidos),
+// assim anotações ainda não salvas não se perdem ao filtrar ou reordenar.
+function sincronizarCardsFavoritos(visiveis) {
+  const idsFavoritos = new Set(favoritos.map((f) => String(f.id)));
+  const cards = new Map();
+
+  [...listaFavoritos.children].forEach((el) => {
+    const id = el.dataset.idFavorito;
+    if (id && idsFavoritos.has(id)) cards.set(id, el);
+    else el.remove();
+  });
+
+  favoritos.forEach((linha) => {
+    const id = String(linha.id);
+    if (!cards.has(id)) {
+      const card = criarElementoCardFavorito(linha);
+      listaFavoritos.append(card);
+      cards.set(id, card);
+    }
+  });
+
+  const idsVisiveis = new Set(visiveis.map((l) => String(l.id)));
+  cards.forEach((card, id) => {
+    card.hidden = !idsVisiveis.has(id);
+  });
+
+  let referencia = listaFavoritos.firstElementChild;
+  visiveis.forEach((linha) => {
+    const card = cards.get(String(linha.id));
+    if (card === referencia) {
+      referencia = referencia.nextElementSibling;
+    } else {
+      listaFavoritos.insertBefore(card, referencia);
+    }
+  });
+}
+
+function atualizarEstadoDaLista(totalVisiveis, filtros) {
+  listaFavoritos.querySelectorAll(":scope > :not(.card)").forEach((el) => el.remove());
+
+  controlesFavoritos.hidden = favoritos.length === 0;
 
   if (favoritos.length === 0) {
-    listaFavoritos.innerHTML = `
+    listaFavoritos.insertAdjacentHTML(
+      "beforeend",
+      `
       <p class="estado-vazio">
         Você ainda não favoritou nenhum time. Busque um time e clique em
         "☆ Favoritar" para guardá-lo aqui.
       </p>
-    `;
-  } else {
-    listaFavoritos.innerHTML = favoritos
-      .map((linha) => {
-        const anotacao = `
-          <div class="anotacao">
-            <label class="anotacao__rotulo" for="anotacao-${escaparHTML(linha.id)}">Minha anotação</label>
-            <textarea
-              id="anotacao-${escaparHTML(linha.id)}"
-              class="anotacao__campo"
-              maxlength="${TAMANHO_MAXIMO_ANOTACAO}"
-              rows="2"
-              placeholder="Ex.: ver o jogo de domingo, camisa que quero comprar..."
-            >${escaparHTML(linha.anotacao || "")}</textarea>
-            <button type="button" class="botao-salvar-anotacao" data-id="${escaparHTML(linha.id)}">
-              Salvar anotação
-            </button>
-          </div>
-        `;
-        const botaoExcluir = `
-          <button type="button" class="botao-excluir-favorito" data-id="${escaparHTML(linha.id)}">
-            Excluir
-          </button>
-        `;
-        return criarCardHTML(linhaParaTime(linha), criarEstrelasHTML(linha) + anotacao + botaoExcluir);
-      })
-      .join("");
+    `
+    );
+  } else if (totalVisiveis === 0) {
+    listaFavoritos.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="estado-vazio">
+        <p>Nenhum favorito corresponde aos filtros selecionados. Seus favoritos continuam salvos.</p>
+        <button type="button" class="search__button botao-limpar-filtros">Limpar filtros</button>
+      </div>
+    `
+    );
   }
 
+  if (favoritos.length > 0 && temFiltroAtivo(filtros)) {
+    const rotulo = favoritos.length === 1 ? "favorito" : "favoritos";
+    resumoFavoritos.textContent = `Mostrando ${totalVisiveis} de ${favoritos.length} ${rotulo}.`;
+    resumoFavoritos.hidden = false;
+  } else {
+    resumoFavoritos.hidden = true;
+  }
+}
+
+function atualizarListaFavoritos() {
+  const filtros = lerFiltrosFavoritos();
+  const visiveis = aplicarFiltrosFavoritos(favoritos, filtros);
+
+  sincronizarCardsFavoritos(visiveis);
+  atualizarEstadoDaLista(visiveis.length, filtros);
+}
+
+// Após mudar a nota, mexe só no card afetado: esconde, mostra ou move
+// para a posição certa, sem recriar os outros cards.
+function reposicionarCardFavorito(id) {
+  const card = encontrarCardFavorito(id);
+  if (!card) return;
+
+  const filtros = lerFiltrosFavoritos();
+  const visiveis = aplicarFiltrosFavoritos(favoritos, filtros);
+  const posicao = visiveis.findIndex((l) => String(l.id) === String(id));
+
+  card.hidden = posicao === -1;
+
+  if (posicao > 0) {
+    const anterior = encontrarCardFavorito(visiveis[posicao - 1].id);
+    if (anterior && anterior.nextElementSibling !== card) anterior.after(card);
+  } else if (posicao === 0 && listaFavoritos.firstElementChild !== card) {
+    listaFavoritos.prepend(card);
+  }
+
+  atualizarEstadoDaLista(visiveis.length, filtros);
+}
+
+function renderizarFavoritos() {
+  contadorFavoritos.textContent = String(favoritos.length);
+
+  atualizarListaFavoritos();
   atualizarMediaNotas();
   atualizarBotoesFavoritar();
+}
+
+function limparFiltrosFavoritos() {
+  campoBuscaFavoritos.value = "";
+  selectNotaFavoritos.value = "";
+  atualizarListaFavoritos();
+  campoBuscaFavoritos.focus();
 }
 
 function criarBotaoFavoritarHTML(time) {
@@ -701,6 +836,7 @@ async function salvarNota(id, valor) {
 
     if (grupo && linha) grupo.outerHTML = criarEstrelasHTML(linha);
     atualizarMediaNotas();
+    reposicionarCardFavorito(id);
   } catch (erro) {
     console.error("Erro ao salvar nota:", erro);
     mostrarToast(mensagemDeErroDoBanco(erro), "erro");
@@ -728,8 +864,18 @@ listaFavoritos.addEventListener("click", (evento) => {
   }
 
   const botaoExcluir = evento.target.closest(".botao-excluir-favorito");
-  if (botaoExcluir) excluirFavoritoDaLista(botaoExcluir);
+  if (botaoExcluir) {
+    excluirFavoritoDaLista(botaoExcluir);
+    return;
+  }
+
+  const botaoLimparFiltros = evento.target.closest(".botao-limpar-filtros");
+  if (botaoLimparFiltros) limparFiltrosFavoritos();
 });
+
+campoBuscaFavoritos.addEventListener("input", atualizarListaFavoritos);
+selectOrdemFavoritos.addEventListener("change", atualizarListaFavoritos);
+selectNotaFavoritos.addEventListener("change", atualizarListaFavoritos);
 
 popularSelectEsportes();
 carregarFavoritos();
