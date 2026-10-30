@@ -6,6 +6,9 @@ const {
   timeParaRegistro,
   linhaParaTime,
   prepararAnotacao,
+  validarNota,
+  calcularMedia,
+  formatarMedia,
   mensagemDeErroDoBanco,
 } = require("./utils");
 
@@ -121,7 +124,59 @@ describe("mensagemDeErroDoBanco", () => {
     expect(mensagemDeErroDoBanco({ code: "42703" })).toMatch(/banco\.sql/);
   });
 
+  test("coluna 'nota' inexistente também orienta a rodar o banco.sql", () => {
+    expect(mensagemDeErroDoBanco({ message: 'column "nota" does not exist' })).toMatch(/banco\.sql/);
+  });
+
   test("erro desconhecido devolve a mensagem genérica", () => {
     expect(mensagemDeErroDoBanco(new Error("falhou"))).toMatch(/Não foi possível falar com o banco/);
+  });
+});
+
+describe("validarNota", () => {
+  test("aceita inteiros de 1 a 5, como número ou texto", () => {
+    [1, 2, 3, 4, 5, "3", " 5 "].forEach((nota) => {
+      expect(validarNota(nota)).toBe(true);
+    });
+  });
+
+  test("rejeita valores fora do intervalo", () => {
+    [0, 6, -1, 100].forEach((nota) => {
+      expect(validarNota(nota)).toBe(false);
+    });
+  });
+
+  test("rejeita decimais, texto e valores vazios", () => {
+    [2.5, "abc", "", "  ", null, undefined, true, NaN].forEach((nota) => {
+      expect(validarNota(nota)).toBe(false);
+    });
+  });
+});
+
+describe("calcularMedia", () => {
+  test("lista vazia ou sem notas válidas devolve null", () => {
+    expect(calcularMedia([])).toBeNull();
+    expect(calcularMedia([null, undefined, 0, 9])).toBeNull();
+  });
+
+  test("calcula a média arredondando para uma casa decimal", () => {
+    expect(calcularMedia([5, 4])).toBe(4.5);
+    expect(calcularMedia([5, 5, 4])).toBe(4.7);
+    expect(calcularMedia([3])).toBe(3);
+  });
+
+  test("ignora as notas inválidas no cálculo", () => {
+    expect(calcularMedia([5, null, 3, "abc", 7])).toBe(4);
+  });
+});
+
+describe("formatarMedia", () => {
+  test("usa vírgula e uma casa decimal", () => {
+    expect(formatarMedia(4.5)).toBe("4,5");
+    expect(formatarMedia(3)).toBe("3,0");
+  });
+
+  test("sem média mostra um traço", () => {
+    expect(formatarMedia(null)).toBe("—");
   });
 });
