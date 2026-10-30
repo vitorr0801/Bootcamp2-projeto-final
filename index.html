@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escalação — Explorador de Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="hero">
+    <p class="hero__kicker">explorador de times</p>
+    <h1 class="hero__title">ESCALAÇÃO</h1>
+    <p class="hero__subtitle">Explore times por esporte e liga, ou busque direto pelo nome exato de um clube.</p>
+
+    <form class="search" id="form-busca">
+      <input
+        type="text"
+        id="campo-busca"
+        class="search__input"
+        placeholder="Nome exato: Cruzeiro, Real Madrid..."
+        autocomplete="off"
+      >
+      <button type="submit" id="botao-buscar" class="search__button">Buscar</button>
+    </form>
+
+    <div class="chips">
+      <button type="button" class="chip" data-time="Real Madrid">Real Madrid</button>
+      <button type="button" class="chip" data-time="Los Angeles Lakers">Lakers</button>
+      <button type="button" class="chip" data-time="Manchester United">Manchester United</button>
+      <button type="button" class="chip" data-time="Cruzeiro">Cruzeiro</button>
+    </div>
+
+    <a class="atalho-favoritos" href="#favoritos">
+      ★ Meus favoritos
+      <span class="atalho-favoritos__contador" id="contador-favoritos">—</span>
+    </a>
+  </header>
+
+  <main>
+    <section class="explorar">
+      <p class="explorar__titulo">ou explore times por esporte, país e liga</p>
+      <div class="explorar__selects">
+        <select id="select-esporte" class="select">
+          <option value="">Escolha um esporte</option>
+        </select>
+        <input
+          id="campo-pais"
+          class="select"
+          type="text"
+          placeholder="Escolha um esporte primeiro"
+          autocomplete="off"
+          disabled
+        >
+        <button type="button" id="botao-buscar-ligas" class="search__button" disabled>Buscar ligas</button>
+      </div>
+      <div class="explorar__selects explorar__selects--liga" id="area-select-liga" hidden>
+        <select id="select-liga" class="select">
+          <option value="">Escolha uma liga</option>
+        </select>
+      </div>
+    </section>
+
+    <div class="filtro-times" id="area-filtro-times" hidden>
+      <input
+        id="campo-filtro-times"
+        class="select"
+        type="text"
+        placeholder="Filtrar pelo nome do time..."
+        autocomplete="off"
+      >
+    </div>
+
+    <section id="resultado" class="resultado" aria-live="polite">
+      <p class="estado-inicial">Nenhum time buscado ainda. Escolha um dos times acima, explore por liga, ou digite o seu.</p>
+    </section>
+
+    <section class="favoritos" id="favoritos" aria-labelledby="titulo-favoritos">
+      <h2 class="favoritos__titulo" id="titulo-favoritos">★ Meus favoritos</h2>
+      <p class="favoritos__descricao">Os times que você favorita ficam salvos num banco de dados — continuam aqui mesmo depois de fechar o navegador.</p>
+      <div id="lista-favoritos" class="favoritos__lista" aria-live="polite">
+        <p class="estado-carregando">Carregando seus favoritos...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>Dados fornecidos por <a href="https://www.thesportsdb.com/" target="_blank" rel="noopener">TheSportsDB</a> · Favoritos salvos com <a href="https://supabase.com/" target="_blank" rel="noopener">Supabase</a> · Projeto acadêmico de bootcamp</p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
