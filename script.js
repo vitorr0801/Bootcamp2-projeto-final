@@ -57,6 +57,7 @@ const campoFiltroTimes = document.getElementById("campo-filtro-times");
 const listaFavoritos = document.getElementById("lista-favoritos");
 const contadorFavoritos = document.getElementById("contador-favoritos");
 const toast = document.getElementById("toast");
+const mediaNotas = document.getElementById("media-notas");
 
 let ultimosTimesCarregados = [];
 
@@ -359,6 +360,46 @@ async function carregarFavoritos() {
   }
 }
 
+function criarEstrelasHTML(linha) {
+  const id = escaparHTML(linha.id);
+  const notaAtual = validarNota(linha.nota) ? Number(linha.nota) : 0;
+
+  const estrelas = [1, 2, 3, 4, 5]
+    .map(
+      (n) => `
+        <button type="button" class="estrela${n <= notaAtual ? " is-ativa" : ""}"
+          data-id="${id}" data-nota="${n}"
+          aria-label="Dar nota ${n} de 5" aria-pressed="${n === notaAtual}">★</button>`
+    )
+    .join("");
+
+  const limpar = notaAtual
+    ? `<button type="button" class="botao-limpar-nota" data-id="${id}">Limpar nota</button>`
+    : "";
+
+  return `
+    <div class="nota" data-id="${id}" role="group" aria-label="Nota do time">
+      <span class="nota__rotulo">Minha nota</span>
+      <div class="nota__estrelas">${estrelas}</div>
+      ${limpar}
+    </div>
+  `;
+}
+
+function atualizarMediaNotas() {
+  const notas = favoritos.map((f) => f.nota).filter(validarNota);
+  const media = calcularMedia(notas);
+
+  if (media === null) {
+    mediaNotas.hidden = true;
+    return;
+  }
+
+  const avaliados = notas.length === 1 ? "time avaliado" : "times avaliados";
+  mediaNotas.textContent = `Média das suas notas: ${formatarMedia(media)} ★ (${notas.length} ${avaliados})`;
+  mediaNotas.hidden = false;
+}
+
 function renderizarFavoritos() {
   contadorFavoritos.textContent = String(favoritos.length);
 
@@ -392,11 +433,12 @@ function renderizarFavoritos() {
             Excluir
           </button>
         `;
-        return criarCardHTML(linhaParaTime(linha), anotacao + botaoExcluir);
+        return criarCardHTML(linhaParaTime(linha), criarEstrelasHTML(linha) + anotacao + botaoExcluir);
       })
       .join("");
   }
 
+  atualizarMediaNotas();
   atualizarBotoesFavoritar();
 }
 
@@ -627,7 +669,58 @@ area.addEventListener("click", (evento) => {
   if (botaoBuscarTime) buscarTimeNaLigaAtual(botaoBuscarTime.dataset.termo);
 });
 
+async function salvarNota(id, valor) {
+  if (!clienteSupabase) return;
+
+  if (valor !== null && !validarNota(valor)) {
+    mostrarToast("A nota precisa ser um número inteiro de 1 a 5.", "erro");
+    return;
+  }
+
+  const grupo = [...listaFavoritos.querySelectorAll(".nota")].find((el) => el.dataset.id === String(id));
+  const botoes = grupo ? grupo.querySelectorAll("button") : [];
+  botoes.forEach((b) => (b.disabled = true));
+
+  try {
+    const { data, error } = await clienteSupabase
+      .from(TABELA_FAVORITOS)
+      .update({ nota: valor === null ? null : Number(valor) })
+      .eq("id", id)
+      .select();
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      mostrarToast("O banco recusou salvar a nota. Confira a policy de UPDATE (RLS) no Supabase.", "erro");
+      botoes.forEach((b) => (b.disabled = false));
+      return;
+    }
+
+    const linha = favoritos.find((f) => String(f.id) === String(id));
+    if (linha) linha.nota = data[0].nota;
+
+    if (grupo && linha) grupo.outerHTML = criarEstrelasHTML(linha);
+    atualizarMediaNotas();
+  } catch (erro) {
+    console.error("Erro ao salvar nota:", erro);
+    mostrarToast(mensagemDeErroDoBanco(erro), "erro");
+    botoes.forEach((b) => (b.disabled = false));
+  }
+}
+
 listaFavoritos.addEventListener("click", (evento) => {
+  const botaoEstrela = evento.target.closest(".estrela");
+  if (botaoEstrela) {
+    salvarNota(botaoEstrela.dataset.id, botaoEstrela.dataset.nota);
+    return;
+  }
+
+  const botaoLimparNota = evento.target.closest(".botao-limpar-nota");
+  if (botaoLimparNota) {
+    salvarNota(botaoLimparNota.dataset.id, null);
+    return;
+  }
+
   const botaoSalvar = evento.target.closest(".botao-salvar-anotacao");
   if (botaoSalvar) {
     salvarAnotacao(botaoSalvar);

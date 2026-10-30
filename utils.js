@@ -103,12 +103,36 @@ function prepararAnotacao(texto) {
   return limpo || null;
 }
 
+const NOTA_MINIMA = 1;
+const NOTA_MAXIMA = 5;
+
+function validarNota(valor) {
+  if (typeof valor !== "number" && typeof valor !== "string") return false;
+  if (String(valor).trim() === "") return false;
+
+  const nota = Number(valor);
+  return Number.isInteger(nota) && nota >= NOTA_MINIMA && nota <= NOTA_MAXIMA;
+}
+
+function calcularMedia(notas) {
+  const validas = notas.filter(validarNota).map(Number);
+  if (validas.length === 0) return null;
+
+  const soma = validas.reduce((total, nota) => total + nota, 0);
+  return Math.round((soma / validas.length) * 10) / 10;
+}
+
+function formatarMedia(media) {
+  if (media === null || media === undefined) return "—";
+  return media.toFixed(1).replace(".", ",");
+}
+
 function mensagemDeErroDoBanco(erro) {
   if (erro && (erro.code === "42501" || /row-level security/i.test(erro.message || ""))) {
     return "O banco recusou a operação. Confira as políticas (RLS) da tabela favoritos no Supabase.";
   }
-  if (erro && (erro.code === "42703" || erro.code === "PGRST204" || /anotacao/i.test(erro.message || ""))) {
-    return "A coluna 'anotacao' não existe no banco. Rode o banco.sql atualizado no SQL Editor do Supabase.";
+  if (erro && (erro.code === "42703" || erro.code === "PGRST204" || /anotacao|\bnota\b/i.test(erro.message || ""))) {
+    return "Uma coluna ('anotacao' ou 'nota') não existe no banco. Rode o banco.sql atualizado no SQL Editor do Supabase.";
   }
   return "Não foi possível falar com o banco de dados. Tente novamente em instantes.";
 }
@@ -122,6 +146,11 @@ if (typeof module !== "undefined" && module.exports) {
     timeParaRegistro,
     linhaParaTime,
     prepararAnotacao,
+    NOTA_MINIMA,
+    NOTA_MAXIMA,
+    validarNota,
+    calcularMedia,
+    formatarMedia,
     mensagemDeErroDoBanco,
   };
 }
