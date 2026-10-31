@@ -183,9 +183,11 @@ function obterCamposDeComparacao(esporte) {
 
   return [
     { rotulo: "País", propriedades: ["strCountry"] },
+    { rotulo: "Cidade", propriedades: ["strCity"] },
     { rotulo: "Ano de fundação", propriedades: ["intFormedYear"] },
     { rotulo: modalidade === "soccer" ? "Liga" : "Liga ou competição", propriedades: ["strLeague"] },
     { rotulo: local, propriedades: ["strStadium"] },
+    { rotulo: "Capacidade", propriedades: ["intStadiumCapacity", "strStadiumCapacity"] },
     { rotulo: "Modalidade", propriedades: ["strSport"] },
   ];
 }
