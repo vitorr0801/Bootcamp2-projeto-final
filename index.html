@@ -78,6 +78,22 @@
       <p class="estado-inicial">Nenhum time buscado ainda. Escolha um dos times acima, explore por liga, ou digite o seu.</p>
     </section>
 
+    <section class="comparacao" id="comparacao" aria-labelledby="titulo-comparacao" hidden>
+      <div class="comparacao__cabecalho">
+        <div>
+          <h2 class="comparacao__titulo" id="titulo-comparacao">Comparar clubes</h2>
+          <p class="comparacao__descricao" id="descricao-comparacao"></p>
+        </div>
+        <button type="button" class="botao-limpar-comparacao" id="botao-limpar-comparacao">Limpar seleção</button>
+      </div>
+      <div class="comparacao__tabela-wrapper">
+        <table class="comparacao__tabela">
+          <thead id="cabecalho-comparacao"></thead>
+          <tbody id="corpo-comparacao"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="favoritos" id="favoritos" aria-labelledby="titulo-favoritos">
       <h2 class="favoritos__titulo" id="titulo-favoritos">★ Meus favoritos</h2>
       <p class="favoritos__descricao">Os times que você favorita ficam salvos num banco de dados — continuam aqui mesmo depois de fechar o navegador.</p>
