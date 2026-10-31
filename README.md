@@ -141,7 +141,7 @@ Para demonstrar o fluxo de resolução de conflitos, o grupo fez uma **simulaç�
 
 **Como aconteceu:** as duas branches criaram `docs/demo-conflito.md` com o mesmo conteúdo, exceto a linha `Versão registrada`, que em cada uma identificava a própria branch. A PR #4 foi aprovada e integrada à `main` primeiro. A partir daí, o GitHub passou a indicar que a PR #5 tinha conflitos e bloqueou o merge.
 
-[PREENCHER: print da PR #5 no GitHub indicando o conflito]
+![PR #5 bloqueada por conflito no GitHub](docs/evidencias/conflito-github.jpeg)
 
 **Como foi identificado:** na branch `demo/conflito-b`, o conflito foi reproduzido localmente:
 
@@ -154,7 +154,7 @@ git merge origin/main
 
 O `git status` listou o arquivo como `both added`, e o VS Code destacou o trecho entre os marcadores `<<<<<<< HEAD`, `=======` e `>>>>>>> origin/main`, com a versão da branch B de um lado e a da branch A, vinda da `main`, do outro.
 
-[PREENCHER: print do conflito no VS Code]
+![Conflito com os marcadores no VS Code](docs/evidencias/conflito-vscode.jpeg)
 
 **Como foi resolvido:** o conflito foi resolvido manualmente. Os marcadores foram removidos e as duas versões foram combinadas numa única linha:
 
