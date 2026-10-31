@@ -115,7 +115,17 @@ A `main` é protegida por um ruleset: ninguém commita direto nela. Cada funcion
 
 ### PR bloqueada pelo CI
 
-[PREENCHER: print de uma PR com o teste quebrando de propósito e o botão de merge bloqueado, mais o link da PR]
+Durante a validação da funcionalidade de comparação de clubes, foi criada uma execução com um teste propositalmente quebrado. O workflow do GitHub Actions identificou a falha e bloqueou o CI da Pull Request, impedindo a aprovação enquanto os testes não fossem corrigidos.
+
+![Execução do CI bloqueada por teste com falha](./docs/prTesteBloqueado.png)
+
+**Link da pipeline com o CI bloqueado:** https://github.com/vitorr0801/Bootcamp2-projeto-final/actions/runs/41164492575
+
+Após a correção do teste, o workflow foi executado novamente. Todos os testes passaram com sucesso e o CI foi liberado para a continuidade da revisão e do merge.
+
+![Execução do CI após a correção dos testes](./docs/prTestePassou.png)
+
+**Link da pipeline após a correção:** https://github.com/vitorr0801/Bootcamp2-projeto-final/actions/runs/41164722178
 
 ### Conflito de merge
 
