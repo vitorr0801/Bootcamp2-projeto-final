@@ -164,6 +164,6 @@ Versão registrada: branches demo/conflito-a e demo/conflito-b (conflito resolvi
 
 Em seguida, o arquivo foi marcado como resolvido com `git add docs/demo-conflito.md`, o merge foi concluído com um commit de resolução e a branch foi enviada ao GitHub para atualizar a PR #5.
 
-[PREENCHER: print da PR #5 sem conflitos e com o CI aprovado]
+![PR #5 sem conflitos e com os checks aprovados, aguardando revisão](docs/evidencias/conflito-resolvido.jpeg)
 
 **Impacto na aplicação:** nenhum. A simulação alterou apenas `docs/demo-conflito.md` e este README. Nenhuma funcionalidade foi alterada, e a pasta `docs/` e os arquivos `.md` ficam fora da imagem Docker (`.dockerignore`).
