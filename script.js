@@ -63,8 +63,14 @@ const campoBuscaFavoritos = document.getElementById("campo-busca-favoritos");
 const selectOrdemFavoritos = document.getElementById("select-ordem-favoritos");
 const selectNotaFavoritos = document.getElementById("select-nota-favoritos");
 const resumoFavoritos = document.getElementById("resumo-favoritos");
+const areaComparacao = document.getElementById("comparacao");
+const descricaoComparacao = document.getElementById("descricao-comparacao");
+const cabecalhoComparacao = document.getElementById("cabecalho-comparacao");
+const corpoComparacao = document.getElementById("corpo-comparacao");
+const botaoLimparComparacao = document.getElementById("botao-limpar-comparacao");
 
 let ultimosTimesCarregados = [];
+const timesSelecionados = new Map();
 
 let ligaAtualSelecionada = "";
 
@@ -234,6 +240,7 @@ function mostrarErro() {
 }
 
 function carregarTimes(times) {
+  limparSelecaoComparacao();
   ultimosTimesCarregados = times;
   campoFiltroTimes.value = "";
   areaFiltroTimes.hidden = times.length <= 1;
@@ -432,7 +439,9 @@ function criarCardFavoritoHTML(linha) {
       Excluir
     </button>
   `;
-  return criarCardHTML(linhaParaTime(linha), criarEstrelasHTML(linha) + anotacao + botaoExcluir);
+  const time = linhaParaTime(linha);
+  if (!timesPorId.has(String(time.idTeam))) timesPorId.set(String(time.idTeam), time);
+  return criarCardHTML(time, criarBotaoCompararHTML(time) + criarEstrelasHTML(linha) + anotacao + botaoExcluir);
 }
 
 function criarElementoCardFavorito(linha) {
@@ -581,10 +590,87 @@ function criarBotaoFavoritarHTML(time) {
   if (!time.idTeam) return "";
 
   return `
+    ${criarBotaoCompararHTML(time)}
     <button type="button" class="botao-favoritar" data-id-time="${escaparHTML(time.idTeam)}" aria-pressed="false">
       ☆ Favoritar
     </button>
   `;
+}
+
+function criarBotaoCompararHTML(time) {
+  if (!time.idTeam) return "";
+
+  const id = escaparHTML(time.idTeam);
+  return `
+    <label class="comparar-time">
+      <input type="checkbox" class="campo-comparar-time" data-id-time="${id}">
+      Comparar
+    </label>
+  `;
+}
+
+function obterTimeParaComparacao(idTime) {
+  const time = timesPorId.get(String(idTime));
+  if (time) return time;
+
+  const favorito = encontrarFavoritoPorIdTime(idTime);
+  return favorito ? linhaParaTime(favorito) : null;
+}
+
+function renderizarComparacao() {
+  const selecionados = [...timesSelecionados.values()];
+  areaComparacao.hidden = selecionados.length < 2;
+  if (selecionados.length < 2) return;
+
+  const campos = obterCamposDeComparacao(selecionados[0].strSport);
+  descricaoComparacao.textContent = `${selecionados.length} clubes de ${selecionados[0].strSport || "modalidade não informada"} selecionados.`;
+  cabecalhoComparacao.innerHTML = `
+    <tr>
+      <th scope="col">Indicador</th>
+      ${selecionados.map((time) => `<th scope="col">${escaparHTML(time.strTeam || "Time sem nome")}</th>`).join("")}
+    </tr>
+  `;
+  corpoComparacao.innerHTML = campos
+    .map(
+      (campo) => `
+        <tr>
+          <th scope="row">${escaparHTML(campo.rotulo)}</th>
+          ${selecionados
+            .map((time) => `<td>${escaparHTML(obterValorDeComparacao(time, campo.propriedades))}</td>`)
+            .join("")}
+        </tr>
+      `
+    )
+    .join("");
+}
+
+function limparSelecaoComparacao() {
+  timesSelecionados.clear();
+  document.querySelectorAll(".campo-comparar-time").forEach((campo) => {
+    campo.checked = false;
+  });
+  renderizarComparacao();
+}
+
+function alternarSelecaoComparacao(campo) {
+  const idTime = String(campo.dataset.idTime);
+  const time = obterTimeParaComparacao(idTime);
+  if (!time) return;
+
+  if (campo.checked) {
+    const selecionados = [...timesSelecionados.values()];
+    if (selecionados.length > 0 && !clubesDaMesmaModalidade([...selecionados, time])) {
+      campo.checked = false;
+      mostrarToast("Só é possível comparar clubes da mesma modalidade.", "erro");
+      return;
+    }
+
+    timesSelecionados.set(idTime, time);
+  } else {
+    timesSelecionados.delete(idTime);
+  }
+
+  renderizarComparacao();
 }
 
 function atualizarBotoesFavoritar() {
@@ -803,6 +889,18 @@ area.addEventListener("click", (evento) => {
   const botaoBuscarTime = evento.target.closest(".botao-buscar-time-liga");
   if (botaoBuscarTime) buscarTimeNaLigaAtual(botaoBuscarTime.dataset.termo);
 });
+
+area.addEventListener("change", (evento) => {
+  const campoComparar = evento.target.closest(".campo-comparar-time");
+  if (campoComparar) alternarSelecaoComparacao(campoComparar);
+});
+
+listaFavoritos.addEventListener("change", (evento) => {
+  const campoComparar = evento.target.closest(".campo-comparar-time");
+  if (campoComparar) alternarSelecaoComparacao(campoComparar);
+});
+
+botaoLimparComparacao.addEventListener("click", limparSelecaoComparacao);
 
 async function salvarNota(id, valor) {
   if (!clienteSupabase) return;

@@ -292,6 +292,89 @@ main {
   margin: 0 0 4px;
 }
 
+.comparacao {
+  margin-top: 40px;
+  padding: 24px;
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.comparacao__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.comparacao__titulo {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  margin: 0 0 4px;
+}
+
+.comparacao__descricao {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.botao-limpar-comparacao {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.botao-limpar-comparacao:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.comparacao__tabela-wrapper {
+  overflow-x: auto;
+}
+
+.comparacao__tabela {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.comparacao__tabela th,
+.comparacao__tabela td {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.comparacao__tabela th {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.comparacao__tabela th:first-child,
+.comparacao__tabela td:first-child {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.comparacao__tabela td:not(:first-child) {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -385,6 +468,26 @@ main {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
+}
+
+.comparar-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.comparar-time input {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.comparar-time:has(input:checked) {
+  color: var(--accent);
 }
 
 .botao-favoritar,
@@ -549,6 +652,14 @@ main {
 
 @media (max-width: 480px) {
   .search {
+    flex-direction: column;
+  }
+
+  .comparacao {
+    padding: 16px;
+  }
+
+  .comparacao__cabecalho {
     flex-direction: column;
   }
 }

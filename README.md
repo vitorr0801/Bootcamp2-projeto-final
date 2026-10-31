@@ -7,8 +7,8 @@ Projeto final do Bootcamp 2, desenvolvido em grupo com fluxo de Pull Requests, t
 | Nome | Matrícula | Usuário GitHub | Funcionalidade pela qual é responsável | Principal PR |
 |------|-----------|----------------|----------------------------------------|--------------|
 | Vitor Reis Rodrigues de Souza | 22308730 | [vitorr0801](https://github.com/vitorr0801) | Nota de 1 a 5 estrelas nos favoritos, com média geral (e a base do projeto: busca, favoritos e anotações) e Funcionalidade de anotações sobre o time. | https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/1 |
-| João Pedro Venturoso Mazza | 22302176 | [mazzajp27](https://github.com/mazzajp27) | Busca, filtros por avaliação e ordenação dos times favoritos, com testes automatizados. | [PREENCHER: link da PR] |
-| [PREENCHER] | [PREENCHER] | [PREENCHER] | [PREENCHER] | [PREENCHER: link da PR] |
+| João Pedro Venturoso Mazza | 22302176 | [mazzajp27](https://github.com/mazzajp27) | Busca, filtros por avaliação e ordenação dos times favoritos, com testes automatizados. | https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/2 |
+| Matheus Pizani de Albuquerque | 22309128 | [mpizanii](https://github.com/mpizanii) | Compara dados de times de mesma modalidade | https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/3 |
 
 ## 2. A aplicação
 
@@ -22,6 +22,7 @@ Projeto final do Bootcamp 2, desenvolvido em grupo com fluxo de Pull Requests, t
 - **buscar entre os favoritos** pelo nome, sem diferenciar acentos nem letras maiúsculas e minúsculas;
 - **ordenar os favoritos** por mais recentes (padrão), nome A–Z, nome Z–A, maior nota ou menor nota;
 - **filtrar os favoritos por nota**, de 1 a 5 estrelas;
+- **comparar dois ou mais clubes da mesma modalidade** lado a lado, com país, fundação, competição, estádio/arena e modalidade (quando a API fornecer o dado);
 - usar a busca, o filtro e a ordenação sem perder **anotações ainda não salvas**; quando nenhum favorito atende aos filtros, a aplicação avisa e oferece um botão para limpá-los, sem alterar os favoritos salvos;
 - excluir favoritos.
 
@@ -55,7 +56,7 @@ O script de criação é o [`banco.sql`](banco.sql) (colar no SQL Editor do Supa
 |---------|--------|
 | `index.html`, `style.css` | Interface |
 | `script.js` | Tela, chamadas à API e ao Supabase |
-| `utils.js` | Funções puras (normalizar texto, traduzir país, escapar HTML, converter time ↔ registro do banco, validar nota, calcular média, buscar, filtrar por nota e ordenar favoritos...), que são as testadas |
+| `utils.js` | Funções puras (normalizar texto, traduzir país, escapar HTML, converter time ↔ registro do banco, validar nota, calcular média, buscar, filtrar e ordenar favoritos e preparar a comparação entre clubes), que são as testadas |
 | `utils.test.js` | Testes automatizados (Jest) |
 | `banco.sql` | Criação da tabela e das políticas |
 | `Dockerfile`, `.dockerignore` | Imagem Docker |
@@ -98,10 +99,11 @@ npm install
 npm test
 ```
 
-Os testes (Jest) ficam em `utils.test.js` e cobrem as funções de `utils.js`. São 44 testes:
+Os testes (Jest) ficam em `utils.test.js` e cobrem as funções de `utils.js`. São 52 testes:
 
 - **25 testes anteriores:** normalização de texto, tradução de países, escape de HTML, conversão entre o time da API e o registro do banco, preparação da anotação, validação da nota, cálculo e formatação da média e mensagens de erro do banco;
 - **19 testes novos:** busca dos favoritos pelo nome, filtro por nota, ordenação (A–Z, Z–A, maior e menor nota, mais recentes) e a combinação dos três, incluindo nomes acentuados, favoritos sem nota e a garantia de que o array original de favoritos não é modificado.
+- **8 testes da comparação:** seleção de campos conforme a modalidade, liga ou competição, distinção entre estádio e arena, tratamento de dados ausentes e validação de clubes da mesma modalidade.
 
 No GitHub, o workflow `.github/workflows/ci.yml` roda `npm test` a cada Pull Request e a cada push na `main`.
 
@@ -113,7 +115,17 @@ A `main` é protegida por um ruleset: ninguém commita direto nela. Cada funcion
 
 ### PR bloqueada pelo CI
 
-[PREENCHER: print de uma PR com o teste quebrando de propósito e o botão de merge bloqueado, mais o link da PR]
+Durante a validação da funcionalidade de comparação de clubes, foi criada uma execução com um teste propositalmente quebrado. O workflow do GitHub Actions identificou a falha e bloqueou o CI da Pull Request, impedindo a aprovação enquanto os testes não fossem corrigidos.
+
+![Execução do CI bloqueada por teste com falha](./docs/prTesteBloqueado.png)
+
+**Link da pipeline com o CI bloqueado:** https://github.com/vitorr0801/Bootcamp2-projeto-final/actions/runs/41164492575
+
+Após a correção do teste, o workflow foi executado novamente. Todos os testes passaram com sucesso e o CI foi liberado para a continuidade da revisão e do merge.
+
+![Execução do CI após a correção dos testes](./docs/prTestePassou.png)
+
+**Link da pipeline após a correção:** https://github.com/vitorr0801/Bootcamp2-projeto-final/actions/runs/41164722178
 
 ### Conflito de merge
 
