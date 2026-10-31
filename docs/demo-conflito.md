@@ -2,4 +2,4 @@
 
 Arquivo criado apenas para demonstrar um conflito de merge (Bootcamp II). Não faz parte da aplicação.
 
-Versão registrada: branch demo/conflito-b
+Versão registrada: branches demo/conflito-a e demo/conflito-b (conflito resolvido manualmente)
