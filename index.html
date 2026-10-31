@@ -82,6 +82,40 @@
       <h2 class="favoritos__titulo" id="titulo-favoritos">★ Meus favoritos</h2>
       <p class="favoritos__descricao">Os times que você favorita ficam salvos num banco de dados — continuam aqui mesmo depois de fechar o navegador.</p>
       <p class="favoritos__media" id="media-notas" hidden></p>
+      <div class="favoritos__controles" id="controles-favoritos" hidden>
+        <div class="favoritos__controle favoritos__controle--busca">
+          <label class="favoritos__rotulo" for="campo-busca-favoritos">Buscar</label>
+          <input
+            id="campo-busca-favoritos"
+            class="select"
+            type="text"
+            placeholder="Filtrar pelo nome do time..."
+            autocomplete="off"
+          >
+        </div>
+        <div class="favoritos__controle">
+          <label class="favoritos__rotulo" for="select-ordem-favoritos">Ordenar por</label>
+          <select id="select-ordem-favoritos" class="select">
+            <option value="recentes">Mais recentes</option>
+            <option value="nome-asc">Nome A–Z</option>
+            <option value="nome-desc">Nome Z–A</option>
+            <option value="nota-desc">Maior nota primeiro</option>
+            <option value="nota-asc">Menor nota primeiro</option>
+          </select>
+        </div>
+        <div class="favoritos__controle">
+          <label class="favoritos__rotulo" for="select-nota-favoritos">Nota</label>
+          <select id="select-nota-favoritos" class="select">
+            <option value="">Todas as notas</option>
+            <option value="5">★★★★★ (5)</option>
+            <option value="4">★★★★ (4)</option>
+            <option value="3">★★★ (3)</option>
+            <option value="2">★★ (2)</option>
+            <option value="1">★ (1)</option>
+          </select>
+        </div>
+      </div>
+      <p class="favoritos__resumo" id="resumo-favoritos" aria-live="polite" hidden></p>
       <div id="lista-favoritos" class="favoritos__lista" aria-live="polite">
         <p class="estado-carregando">Carregando seus favoritos...</p>
       </div>

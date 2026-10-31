@@ -127,6 +127,56 @@ function formatarMedia(media) {
   return media.toFixed(1).replace(".", ",");
 }
 
+function filtrarFavoritosPorNome(lista, termo) {
+  const busca = normalizarTexto(String(termo || ""));
+  if (!busca) return [...lista];
+
+  return lista.filter((favorito) => normalizarTexto(String(favorito.nome_time || "")).includes(busca));
+}
+
+function filtrarFavoritosPorNota(lista, nota) {
+  if (!validarNota(nota)) return [...lista];
+
+  return lista.filter((favorito) => validarNota(favorito.nota) && Number(favorito.nota) === Number(nota));
+}
+
+function compararNomesDeFavoritos(a, b) {
+  return String(a.nome_time || "").localeCompare(String(b.nome_time || ""), "pt-BR", { sensitivity: "base" });
+}
+
+function compararNotasDeFavoritos(a, b, direcao) {
+  const notaA = validarNota(a.nota) ? Number(a.nota) : null;
+  const notaB = validarNota(b.nota) ? Number(b.nota) : null;
+
+  if (notaA === null && notaB === null) return 0;
+  if (notaA === null) return 1;
+  if (notaB === null) return -1;
+  return (notaA - notaB) * direcao;
+}
+
+function ordenarFavoritos(lista, ordem) {
+  const copia = [...lista];
+
+  switch (ordem) {
+    case "nome-asc":
+      return copia.sort(compararNomesDeFavoritos);
+    case "nome-desc":
+      return copia.sort((a, b) => compararNomesDeFavoritos(b, a));
+    case "nota-desc":
+      return copia.sort((a, b) => compararNotasDeFavoritos(a, b, -1) || compararNomesDeFavoritos(a, b));
+    case "nota-asc":
+      return copia.sort((a, b) => compararNotasDeFavoritos(a, b, 1) || compararNomesDeFavoritos(a, b));
+    default:
+      return copia;
+  }
+}
+
+function aplicarFiltrosFavoritos(lista, { termo = "", nota = "", ordem = "recentes" } = {}) {
+  const porNome = filtrarFavoritosPorNome(lista, termo);
+  const porNota = filtrarFavoritosPorNota(porNome, nota);
+  return ordenarFavoritos(porNota, ordem);
+}
+
 function mensagemDeErroDoBanco(erro) {
   if (erro && (erro.code === "42501" || /row-level security/i.test(erro.message || ""))) {
     return "O banco recusou a operação. Confira as políticas (RLS) da tabela favoritos no Supabase.";
@@ -151,6 +201,10 @@ if (typeof module !== "undefined" && module.exports) {
     validarNota,
     calcularMedia,
     formatarMedia,
+    filtrarFavoritosPorNome,
+    filtrarFavoritosPorNota,
+    ordenarFavoritos,
+    aplicarFiltrosFavoritos,
     mensagemDeErroDoBanco,
   };
 }
