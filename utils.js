@@ -177,6 +177,33 @@ function aplicarFiltrosFavoritos(lista, { termo = "", nota = "", ordem = "recent
   return ordenarFavoritos(porNota, ordem);
 }
 
+function obterCamposDeComparacao(esporte) {
+  const modalidade = normalizarTexto(String(esporte || ""));
+  const local = modalidade === "basketball" || modalidade === "ice hockey" ? "Arena" : "Estádio";
+
+  return [
+    { rotulo: "País", propriedades: ["strCountry"] },
+    { rotulo: "Ano de fundação", propriedades: ["intFormedYear"] },
+    { rotulo: modalidade === "soccer" ? "Liga" : "Liga ou competição", propriedades: ["strLeague"] },
+    { rotulo: local, propriedades: ["strStadium"] },
+    { rotulo: "Modalidade", propriedades: ["strSport"] },
+  ];
+}
+
+function obterValorDeComparacao(time, propriedades) {
+  const propriedade = propriedades.find(
+    (nome) => time[nome] !== null && time[nome] !== undefined && time[nome] !== ""
+  );
+  return propriedade ? time[propriedade] : "Não informado";
+}
+
+function clubesDaMesmaModalidade(clubes) {
+  if (!Array.isArray(clubes) || clubes.length < 2) return false;
+
+  const modalidades = new Set(clubes.map((clube) => normalizarTexto(String(clube.strSport || ""))));
+  return modalidades.size === 1;
+}
+
 function mensagemDeErroDoBanco(erro) {
   if (erro && (erro.code === "42501" || /row-level security/i.test(erro.message || ""))) {
     return "O banco recusou a operação. Confira as políticas (RLS) da tabela favoritos no Supabase.";
@@ -205,6 +232,9 @@ if (typeof module !== "undefined" && module.exports) {
     filtrarFavoritosPorNota,
     ordenarFavoritos,
     aplicarFiltrosFavoritos,
+    obterCamposDeComparacao,
+    obterValorDeComparacao,
+    clubesDaMesmaModalidade,
     mensagemDeErroDoBanco,
   };
 }

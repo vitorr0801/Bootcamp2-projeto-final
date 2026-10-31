@@ -617,24 +617,6 @@ function obterTimeParaComparacao(idTime) {
   return favorito ? linhaParaTime(favorito) : null;
 }
 
-function obterCamposDeComparacao(esporte) {
-  const modalidade = normalizarTexto(esporte);
-  const local = modalidade === "basketball" || modalidade === "ice hockey" ? "Arena" : "Estádio";
-
-  return [
-    { rotulo: "País", propriedades: ["strCountry"] },
-    { rotulo: "Ano de fundação", propriedades: ["intFormedYear"] },
-    { rotulo: modalidade === "soccer" ? "Liga" : "Liga ou competição", propriedades: ["strLeague"] },
-    { rotulo: local, propriedades: ["strStadium"] },
-    { rotulo: "Modalidade", propriedades: ["strSport"] },
-  ];
-}
-
-function obterValorDeComparacao(time, propriedades) {
-  const propriedade = propriedades.find((nome) => time[nome] !== null && time[nome] !== undefined && time[nome] !== "");
-  return propriedade ? time[propriedade] : "Não informado";
-}
-
 function renderizarComparacao() {
   const selecionados = [...timesSelecionados.values()];
   areaComparacao.hidden = selecionados.length < 2;
@@ -677,10 +659,7 @@ function alternarSelecaoComparacao(campo) {
 
   if (campo.checked) {
     const selecionados = [...timesSelecionados.values()];
-    const modalidadeAtual = normalizarTexto(time.strSport || "");
-    const modalidadeSelecionada = normalizarTexto(selecionados[0]?.strSport || "");
-
-    if (selecionados.length > 0 && modalidadeAtual !== modalidadeSelecionada) {
+    if (selecionados.length > 0 && !clubesDaMesmaModalidade([...selecionados, time])) {
       campo.checked = false;
       mostrarToast("Só é possível comparar clubes da mesma modalidade.", "erro");
       return;

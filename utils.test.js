@@ -14,6 +14,9 @@ const {
   filtrarFavoritosPorNota,
   ordenarFavoritos,
   aplicarFiltrosFavoritos,
+  obterCamposDeComparacao,
+  obterValorDeComparacao,
+  clubesDaMesmaModalidade,
 } = require("./utils");
 
 describe("normalizarTexto", () => {
@@ -317,5 +320,60 @@ describe("aplicarFiltrosFavoritos", () => {
     const original = [...favoritosDeExemplo];
     expect(aplicarFiltrosFavoritos(favoritosDeExemplo, { termo: "Cruzeiro", nota: "1" })).toEqual([]);
     expect(favoritosDeExemplo).toEqual(original);
+  });
+});
+
+describe("obterCamposDeComparacao", () => {
+  test("inclui cidade e usa liga para futebol", () => {
+    expect(obterCamposDeComparacao("Soccer")).toEqual([
+      { rotulo: "País", propriedades: ["strCountry"] },
+      { rotulo: "Cidade", propriedades: ["strCity"] },
+      { rotulo: "Ano de fundação", propriedades: ["intFormedYear"] },
+      { rotulo: "Liga", propriedades: ["strLeague"] },
+      { rotulo: "Estádio", propriedades: ["strStadium"] },
+      { rotulo: "Capacidade", propriedades: ["intStadiumCapacity", "strStadiumCapacity"] },
+      { rotulo: "Modalidade", propriedades: ["strSport"] },
+    ]);
+  });
+
+  test("usa Arena para basquete e hóquei", () => {
+    expect(obterCamposDeComparacao("Basketball").map((campo) => campo.rotulo)).toContain("Arena");
+    expect(obterCamposDeComparacao("Ice Hockey").map((campo) => campo.rotulo)).toContain("Arena");
+  });
+
+  test("usa competição para modalidades diferentes de futebol", () => {
+    expect(obterCamposDeComparacao("Baseball").map((campo) => campo.rotulo)).toContain("Liga ou competição");
+  });
+});
+
+describe("obterValorDeComparacao", () => {
+  test("usa a primeira propriedade disponível", () => {
+    expect(
+      obterValorDeComparacao({ intStadiumCapacity: "", strStadiumCapacity: "50000" }, [
+        "intStadiumCapacity",
+        "strStadiumCapacity",
+      ])
+    ).toBe("50000");
+  });
+
+  test("informa quando o dado não existe", () => {
+    expect(obterValorDeComparacao({ strCity: null }, ["strCity"])).toBe("Não informado");
+  });
+});
+
+describe("clubesDaMesmaModalidade", () => {
+  test("aceita dois ou mais clubes da mesma modalidade", () => {
+    expect(
+      clubesDaMesmaModalidade([{ strSport: "Soccer" }, { strSport: "soccer" }, { strSport: "Soccer" }])
+    ).toBe(true);
+  });
+
+  test("rejeita clubes de modalidades diferentes", () => {
+    expect(clubesDaMesmaModalidade([{ strSport: "Soccer" }, { strSport: "Basketball" }])).toBe(false);
+  });
+
+  test("rejeita lista com menos de dois clubes", () => {
+    expect(clubesDaMesmaModalidade([{ strSport: "Soccer" }])).toBe(false);
+    expect(clubesDaMesmaModalidade([])).toBe(false);
   });
 });
