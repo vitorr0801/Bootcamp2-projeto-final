@@ -129,4 +129,41 @@ Após a correção do teste, o workflow foi executado novamente. Todos os testes
 
 ### Conflito de merge
 
-[PREENCHER: relato de pelo menos um conflito de merge: em quais branches e arquivo aconteceu, como foi resolvido e por quem. Se não houve conflito, dizer que não houve]
+Para demonstrar o fluxo de resolução de conflitos, o grupo fez uma **simulação controlada** usando duas branches temporárias e um arquivo de demonstração, sem tocar no código da aplicação.
+
+| Item | Detalhe |
+|------|---------|
+| Branches | `demo/conflito-a` e `demo/conflito-b`, ambas criadas a partir da `main` |
+| Pull Requests | [#4](https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/4) (`demo/conflito-a`) e [#5](https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/5) (`demo/conflito-b`) |
+| Arquivo | `docs/demo-conflito.md` |
+| Tipo de conflito | `add/add`: as duas branches criaram o mesmo arquivo com conteúdo diferente na mesma linha |
+| Resolvido por | João Pedro Venturoso Mazza |
+
+**Como aconteceu:** as duas branches criaram `docs/demo-conflito.md` com o mesmo conteúdo, exceto a linha `Versão registrada`, que em cada uma identificava a própria branch. A PR #4 foi aprovada e integrada à `main` primeiro. A partir daí, o GitHub passou a indicar que a PR #5 tinha conflitos e bloqueou o merge.
+
+[PREENCHER: print da PR #5 no GitHub indicando o conflito]
+
+**Como foi identificado:** na branch `demo/conflito-b`, o conflito foi reproduzido localmente:
+
+```bash
+git switch demo/conflito-b
+git fetch origin
+git merge origin/main
+# CONFLICT (add/add): Merge conflict in docs/demo-conflito.md
+```
+
+O `git status` listou o arquivo como `both added`, e o VS Code destacou o trecho entre os marcadores `<<<<<<< HEAD`, `=======` e `>>>>>>> origin/main`, com a versão da branch B de um lado e a da branch A, vinda da `main`, do outro.
+
+[PREENCHER: print do conflito no VS Code]
+
+**Como foi resolvido:** o conflito foi resolvido manualmente. Os marcadores foram removidos e as duas versões foram combinadas numa única linha:
+
+```
+Versão registrada: branches demo/conflito-a e demo/conflito-b (conflito resolvido manualmente)
+```
+
+Em seguida, o arquivo foi marcado como resolvido com `git add docs/demo-conflito.md`, o merge foi concluído com um commit de resolução e a branch foi enviada ao GitHub para atualizar a PR #5.
+
+[PREENCHER: print da PR #5 sem conflitos e com o CI aprovado]
+
+**Impacto na aplicação:** nenhum. A simulação alterou apenas `docs/demo-conflito.md` e este README. Nenhuma funcionalidade foi alterada, e a pasta `docs/` e os arquivos `.md` ficam fora da imagem Docker (`.dockerignore`).
