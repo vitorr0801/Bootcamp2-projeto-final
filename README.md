@@ -6,9 +6,9 @@ Projeto final do Bootcamp 2, desenvolvido em grupo com fluxo de Pull Requests, t
 
 | Nome | Matrícula | Usuário GitHub | Funcionalidade pela qual é responsável | Principal PR |
 |------|-----------|----------------|----------------------------------------|--------------|
-| Vitor Reis Rodrigues de Souza | 22308730 | [vitorr0801](https://github.com/vitorr0801) | Nota de 1 a 5 estrelas nos favoritos, com média geral (e a base do projeto: busca, favoritos e anotações) e Funcionalidade de anotações sobre o time. | https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/1 |
-| João Pedro Venturoso Mazza | 22302176 | [mazzajp27](https://github.com/mazzajp27) | Busca, filtros por avaliação e ordenação dos times favoritos, com testes automatizados. | https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/2 |
-| Matheus Pizani de Albuquerque | 22309128 | [mpizanii](https://github.com/mpizanii) | Compara dados de times de mesma modalidade | https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/3 |
+| Vitor Reis Rodrigues de Souza | 22308730 | [vitorr0801](https://github.com/vitorr0801) | Nota de 1 a 5 estrelas nos favoritos, com média geral (e a base do projeto: busca, favoritos e anotações) e Funcionalidade de anotações sobre o time. | [#1](https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/1) |
+| João Pedro Venturoso Mazza | 22302176 | [mazzajp27](https://github.com/mazzajp27) | Busca, filtros por avaliação e ordenação dos times favoritos, com testes automatizados. | [#2](https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/2) |
+| Matheus Pizani de Albuquerque | 22309128 | [mpizanii](https://github.com/mpizanii) | Compara dados de times de mesma modalidade | [#3](https://github.com/vitorr0801/Bootcamp2-projeto-final/pull/3) |
 
 ## 2. A aplicação
 
@@ -102,8 +102,8 @@ npm test
 Os testes (Jest) ficam em `utils.test.js` e cobrem as funções de `utils.js`. São 52 testes:
 
 - **25 testes anteriores:** normalização de texto, tradução de países, escape de HTML, conversão entre o time da API e o registro do banco, preparação da anotação, validação da nota, cálculo e formatação da média e mensagens de erro do banco;
-- **19 testes novos:** busca dos favoritos pelo nome, filtro por nota, ordenação (A–Z, Z–A, maior e menor nota, mais recentes) e a combinação dos três, incluindo nomes acentuados, favoritos sem nota e a garantia de que o array original de favoritos não é modificado.
-- **8 testes da comparação:** seleção de campos conforme a modalidade, liga ou competição, distinção entre estádio e arena, tratamento de dados ausentes e validação de clubes da mesma modalidade.
+- **19 testes dos filtros dos favoritos:** busca dos favoritos pelo nome, filtro por nota, ordenação (A–Z, Z–A, maior e menor nota, mais recentes) e a combinação dos três, incluindo nomes acentuados, favoritos sem nota e a garantia de que o array original de favoritos não é modificado;
+- **8 testes da comparação de clubes:** seleção de campos conforme a modalidade, liga ou competição, distinção entre estádio e arena, tratamento de dados ausentes e validação de clubes da mesma modalidade.
 
 No GitHub, o workflow `.github/workflows/ci.yml` roda `npm test` a cada Pull Request e a cada push na `main`.
 
@@ -166,4 +166,4 @@ Em seguida, o arquivo foi marcado como resolvido com `git add docs/demo-conflito
 
 ![PR #5 sem conflitos e com os checks aprovados, aguardando revisão](docs/evidencias/conflito-resolvido.jpeg)
 
-**Impacto na aplicação:** nenhum. A simulação alterou apenas `docs/demo-conflito.md` e este README. Nenhuma funcionalidade foi alterada, e a pasta `docs/` e os arquivos `.md` ficam fora da imagem Docker (`.dockerignore`).
+**Impacto na aplicação:** nenhum. A simulação apenas criou `docs/demo-conflito.md`, adicionou três imagens de evidência em `docs/evidencias/` e atualizou este README. Nenhuma funcionalidade foi alterada, e a pasta `docs/` e os arquivos `.md` ficam fora da imagem Docker (`.dockerignore`).
